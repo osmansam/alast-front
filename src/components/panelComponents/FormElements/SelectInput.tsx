@@ -1,0 +1,381 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { IoIosClose } from "react-icons/io";
+import { MdArrowDropDown, MdOutlineDone } from "react-icons/md";
+import type {
+  ActionMeta,
+  CSSObjectWithLabel,
+  GroupBase,
+  InputActionMeta,
+  MultiValue,
+  OptionProps,
+  PropsValue,
+  SingleValue,
+} from "react-select";
+import Select, { components } from "react-select";
+import type { OptionType } from "../../../types";
+
+import { GenericButton } from "../../../common/GenericButton";
+import { H6 } from "../Typography";
+
+const CustomOption = (
+  props: OptionProps<
+    { value: any; label: string },
+    boolean,
+    GroupBase<{ value: any; label: string }>
+  >,
+) => (
+  <components.Option {...props}>
+    {props.label}
+    {props.isSelected && (
+      <MdOutlineDone className="text-blue-700 font-bold text-xl " />
+    )}
+  </components.Option>
+);
+
+interface SelectInputProps {
+  label?: string;
+  options: OptionType[];
+  value: PropsValue<OptionType>;
+  onChange: (
+    value: SingleValue<OptionType> | MultiValue<OptionType>,
+    actionMeta: ActionMeta<OptionType>,
+  ) => void;
+  onClear?: () => void;
+  onChangeTrigger?: (
+    value: SingleValue<OptionType> | MultiValue<OptionType>,
+    actionMeta: ActionMeta<OptionType>,
+  ) => void;
+  placeholder?: string;
+  isMultiple?: boolean;
+  requiredField?: boolean;
+  isAutoFill?: boolean;
+  isOnClearActive?: boolean;
+  isReadOnly?: boolean;
+  isTopFlexRow?: boolean;
+  suggestedOption?: { value: string; label: string }[] | null;
+  isSortDisabled?: boolean;
+  customControlBackgroundColor?: string;
+  isExpandedMultiValueLabel?: boolean;
+}
+
+const normalizeText = (text: string) => {
+  return text
+    ?.toLowerCase()
+    ?.replace(/ı/g, "i")
+    ?.replace(/i̇/g, "i")
+    ?.replace(/ğ/g, "g")
+    ?.replace(/ü/g, "u")
+    ?.replace(/ş/g, "s")
+    ?.replace(/ö/g, "o")
+    ?.replace(/ç/g, "c");
+};
+
+const customFilterOption = (
+  option: { value: any; label: string },
+
+  searchInput: string,
+) => {
+  const normalizedLabel = normalizeText(option.label);
+  const normalizedSearch = normalizeText(searchInput);
+  return normalizedLabel.includes(normalizedSearch);
+};
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < breakpoint,
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+const SelectInput = ({
+  label,
+  options,
+  value,
+  onChange,
+  onChangeTrigger,
+  isMultiple,
+  placeholder,
+  onClear,
+  isOnClearActive = true,
+  isAutoFill = true,
+  requiredField = false,
+  isReadOnly = false,
+  isTopFlexRow = false,
+  isSortDisabled = false,
+  suggestedOption,
+  customControlBackgroundColor,
+  isExpandedMultiValueLabel = false,
+}: SelectInputProps) => {
+  const [searchInput, setSearchInput] = useState("");
+  const [isSearchable, setIsSearchable] = useState(false);
+  const [isDownIconClicked, setIsDownIconClicked] = useState(false);
+  const [sortedOptions, setSortedOptions] = useState<OptionType[]>(
+    isSortDisabled
+      ? options
+      : options?.sort((a, b) => a?.label?.localeCompare(b?.label)),
+  );
+  const selectRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile(768);
+  const customStyles = {
+    control: (base: any) => ({
+      ...base,
+      border: `1px solid #E2E8F0 ${
+        requiredField && !label ? "#ee5954" : "#E2E8F0"
+      }`,
+      borderRadius: "4px",
+      fontSize: "16px",
+      height: "auto",
+      ...(customControlBackgroundColor && {
+        backgroundColor: customControlBackgroundColor,
+      }),
+    }),
+    menu: (base: any) => ({
+      ...base,
+      overflowY: "auto",
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      borderRadius: "6px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      color: "#4B5563",
+      cursor: "pointer",
+      backgroundColor: state.isSelected ? "#EDF7FF" : base.backgroundColor,
+      ":hover": {
+        color: "#0057FF",
+      },
+      fontSize: "16px",
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: "#b0b5ba",
+      fontSize: "16px",
+      fontWeight: 400,
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      fontSize: "16px",
+    }),
+    ...(isExpandedMultiValueLabel && {
+      multiValue: (base: CSSObjectWithLabel) => ({
+        ...base,
+        maxWidth: "none",
+        backgroundColor: "#E5E7EB",
+        borderRadius: "4px",
+      }),
+      multiValueLabel: (base: CSSObjectWithLabel) => ({
+        ...base,
+        maxWidth: "none",
+        overflow: "visible",
+        textOverflow: "unset",
+        whiteSpace: "nowrap",
+        fontSize: "14px",
+        padding: "2px 6px",
+      }),
+    }),
+  };
+
+  useEffect(() => {
+    const sorted = isSortDisabled
+      ? options
+      : options.sort((a, b) => {
+          const aStartsWith = normalizeText(a.label)?.startsWith(
+            normalizeText(searchInput),
+          );
+          const bStartsWith = normalizeText(b.label)?.startsWith(
+            normalizeText(searchInput),
+          );
+          if (aStartsWith && !bStartsWith) return -1;
+          if (bStartsWith && !aStartsWith) return 1;
+          return a?.label?.localeCompare(b.label);
+        });
+    setSortedOptions([...sorted]);
+  }, [options, searchInput]);
+
+  const handleInputChange = useCallback(
+    (newValue: string, actionMeta: InputActionMeta) => {
+      if (actionMeta.action === "input-change") {
+        setSearchInput(newValue);
+        return newValue;
+      }
+    },
+    [],
+  );
+
+  const DropdownIndicator = (props: any) => {
+    return (
+      <components.DropdownIndicator {...props}>
+        <MdArrowDropDown
+          className="text-gray-500 text-2xl"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setIsSearchable(false);
+            setIsDownIconClicked(true);
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setIsSearchable(false);
+            setIsDownIconClicked(true);
+          }}
+        />
+      </components.DropdownIndicator>
+    );
+  };
+
+  useEffect(() => {
+    if (options.length === 1 && !value && isAutoFill) {
+      const actionMeta: ActionMeta<OptionType> = {
+        action: "select-option",
+        option: options[0],
+      };
+      onChange(options[0], actionMeta);
+      onChangeTrigger && onChangeTrigger(options[0], actionMeta);
+    }
+  }, [options, value, isAutoFill]);
+
+  return (
+    <div
+      ref={selectRef}
+      className={`flex ${
+        isTopFlexRow
+          ? "flex-row items-center sm:flex-col sm:items-baseline gap-1 sm:gap-2"
+          : "flex-col gap-2"
+      } __className_a182b8 `}
+    >
+      {label && (
+        <H6
+          className={`flex items-center gap-2 ${
+            isTopFlexRow ? "w-28 flex-shrink-0" : ""
+          }`}
+        >
+          <span>{label}</span>
+          {requiredField && <span className="text-red-400">*</span>}
+
+          {Array.isArray(suggestedOption) &&
+            suggestedOption
+              // only keep suggestions that exist in the available options
+              .filter((opt) => options.some((o) => o.value === opt.value))
+              // exclude already selected ones
+              .filter((opt) => {
+                if (isMultiple) {
+                  const curr = (value as MultiValue<OptionType>) || [];
+                  return !curr.some((v) => v.value === opt.value);
+                } else {
+                  const curr = value as SingleValue<OptionType> | null;
+                  return (curr?.value ?? null) !== opt.value;
+                }
+              })
+              // render a button per remaining suggestion
+              .map((opt) => (
+                <GenericButton
+                  key={opt.value}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    const candidate = opt as OptionType;
+                    const actionMeta: ActionMeta<OptionType> = {
+                      action: "select-option",
+                      option: candidate,
+                    };
+
+                    if (isMultiple) {
+                      const curr = (value as MultiValue<OptionType>) || [];
+                      const next = [...curr, candidate];
+                      onChange(next, actionMeta);
+                      onChangeTrigger && onChangeTrigger(next, actionMeta);
+                    } else {
+                      onChange(candidate, actionMeta);
+                      onChangeTrigger && onChangeTrigger(candidate, actionMeta);
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="ml-2 text-xs sm:text-sm rounded-full"
+                  title={`Use suggested: ${opt.label}`}
+                >
+                  {opt.label}
+                </GenericButton>
+              ))}
+        </H6>
+      )}
+
+      <div className="flex flex-row gap-2 w-full min-w-fit ">
+        <div className="w-full min-w-fit ">
+          {isMultiple ? (
+            <Select
+              isMulti
+              options={options}
+              onChange={(value, actionMeta) => {
+                onChange(value, actionMeta);
+                onChangeTrigger && onChangeTrigger(value, actionMeta);
+              }}
+              value={value}
+              components={{ Option: CustomOption, DropdownIndicator }}
+              placeholder={placeholder}
+              styles={customStyles}
+              closeMenuOnSelect={false}
+              blurInputOnSelect={false}
+              filterOption={customFilterOption}
+              isSearchable={!isSearchable && !isDownIconClicked}
+              onMenuClose={() => {
+                setIsSearchable(false);
+                setIsDownIconClicked(false);
+              }}
+              isDisabled={isReadOnly}
+              menuShouldScrollIntoView={true}
+              menuPlacement={isMobile ? "bottom" : "auto"}
+              menuPosition={isMobile ? "absolute" : "fixed"}
+            />
+          ) : (
+            <Select
+              options={sortedOptions}
+              onChange={(value, actionMeta) => {
+                onChange(value, actionMeta);
+                onChangeTrigger && onChangeTrigger(value, actionMeta);
+                setIsSearchable(false);
+                setIsDownIconClicked(false);
+              }}
+              value={value}
+              components={{ Option: CustomOption, DropdownIndicator }}
+              placeholder={placeholder}
+              styles={customStyles}
+              filterOption={customFilterOption}
+              hideSelectedOptions={true}
+              isSearchable={!isSearchable && !isDownIconClicked}
+              onInputChange={handleInputChange}
+              onMenuClose={() => {
+                setIsSearchable(false);
+                setIsDownIconClicked(false);
+              }}
+              isDisabled={isReadOnly}
+              menuShouldScrollIntoView={true}
+              menuPlacement={isMobile ? "bottom" : "auto"}
+              menuPosition={isMobile ? "absolute" : "fixed"}
+              isClearable={false}
+              backspaceRemovesValue={true}
+            />
+          )}
+        </div>
+        {!isReadOnly && !isMultiple && isOnClearActive && value && onClear && (
+          <GenericButton
+            onClick={onClear}
+            variant="icon"
+            className="w-10 h-10 my-auto text-gray-500 hover:text-red-700"
+          >
+            <IoIosClose size={28} />
+          </GenericButton>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default React.memo(SelectInput);

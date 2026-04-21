@@ -1,0 +1,66 @@
+import { useEffect, useState } from "react";
+
+export type InputType = "date" | "autocomplete" | "text" | "number" | "time";
+
+export interface InputWithLabelProps {
+  name?: string;
+  label?: string;
+  type?: InputType;
+  id?: string;
+  readOnly?: boolean;
+  className?: string;
+  min?: number;
+  value?: string | number;
+  bgColor?: string;
+  hidden?: boolean;
+  onChange?: (event: React.FormEvent<HTMLInputElement>) => void;
+}
+
+export function InputWithLabel({
+  label,
+  type = "text",
+  id,
+  onChange,
+  min = 0,
+  bgColor = "bg-white",
+  hidden = false,
+  value,
+  ...props
+}: InputWithLabelProps) {
+
+  const [localValue, setLocalValue] = useState(value ?? "");
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setLocalValue(value ?? "");
+    }
+  }, [value]);
+
+  return (
+    <div
+      className={`relative mt-4 w-full ${
+        hidden ? "hidden" : ""
+      } __className_a182b8`}
+    >
+      <input
+        id={id}
+        min={min}
+        {...props}
+        value={localValue}
+        type={type}
+        className={`${bgColor} w-full text-gray-600 border-0 border-b-[1px] focus:outline-none font-normal h-10 text-base border-gray-300`}
+        placeholder=""
+        onChange={(event) => {
+          setLocalValue(event.target.value);
+          onChange?.(event);
+        }}
+      />
+      <label
+        htmlFor={id}
+        className="text-gray-800 text-xs absolute left-0 -top-2.5"
+      >
+        {label}
+      </label>
+    </div>
+  );
+}

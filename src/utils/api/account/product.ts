@@ -1,0 +1,194 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { useGeneralContext } from "../../../context/General.context";
+import { AccountProduct } from "../../../types";
+import { patch, post } from ".././index";
+import { Paths, useGetList, useMutationApi } from "../factory";
+
+const baseUrl = `${Paths.Accounting}/products`;
+const allProductsBaseUrl = `${Paths.Accounting}/all-products`;
+export interface CreateBulkProductAndMenuItem {
+  name: string;
+  expenseType?: string;
+  brand?: string;
+  vendor?: string;
+  category?: string;
+  itemProduction?: string;
+  price?: number;
+  onlinePrice?: number;
+  description?: string;
+  image?: string;
+  errorNote?: string;
+  countList?: string;
+  locations?: string;
+}
+export interface UpdateMultipleBaseQuantities {
+  _id: number;
+  baseQuantities: any[];
+}
+export interface JoinProductsRequest {
+  stayedProduct: string;
+  removedProduct: string;
+}
+
+export interface GameBatchFIFO {
+  productId: string;
+  purchasedQuantity: number;
+  startDate: string;
+  endDate: string;
+  duration: number;
+  averageSalesPerDay: number;
+  remainingQuantity: number;
+  purchaseDate: string;
+}
+export function useAccountProductMutations() {
+  const {
+    deleteItem: deleteAccountProduct,
+    updateItem: updateAccountProduct,
+    createItem: createAccountProduct,
+  } = useMutationApi<AccountProduct>({
+    baseQuery: baseUrl,
+  });
+
+  return { deleteAccountProduct, updateAccountProduct, createAccountProduct };
+}
+
+export function createBulkProductAndMenuItem(
+  createBulkPayload: CreateBulkProductAndMenuItem[],
+) {
+  return post({
+    path: `${Paths.Accounting}/products/bulk`,
+    payload: createBulkPayload,
+  });
+}
+
+export function updateMultipleBaseQuantities(
+  updates: UpdateMultipleBaseQuantities[],
+) {
+  return patch({
+    path: `${Paths.Accounting}/base-quantities`,
+    payload: updates,
+  });
+}
+
+export function useUpdateMultipleBaseQuantitiesMutation() {
+  const queryKey = [baseUrl];
+  const queryClient = useQueryClient();
+  const { setErrorDataForProductBulkCreation } = useGeneralContext();
+  return useMutation({
+    mutationFn: updateMultipleBaseQuantities,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+    },
+    onSettled: (response) => {
+      // if (response) {
+      //   setErrorDataForProductBulkCreation(
+      //     response as CreateBulkProductAndMenuItem[]
+      //   );
+      // }
+    },
+    onError: (_err: any) => {
+      const errorMessage =
+        _err?.response?.data?.message || "An unexpected error occurred";
+      setTimeout(() => toast.error(errorMessage), 200);
+    },
+  });
+}
+
+export function updateMultipleProduct(
+  updateMultipleProductPayload: CreateBulkProductAndMenuItem[],
+) {
+  return post({
+    path: `${Paths.Accounting}/products/update-multiple`,
+    payload: updateMultipleProductPayload,
+  });
+}
+export function useCreateBulkProductAndMenuItemMutation() {
+  const queryKey = [baseUrl];
+  const queryClient = useQueryClient();
+  const { setErrorDataForProductBulkCreation } = useGeneralContext();
+  return useMutation({
+    mutationFn: createBulkProductAndMenuItem,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+    },
+    onSettled: (response) => {
+      if (response) {
+        setErrorDataForProductBulkCreation(
+          response as Record<string, unknown>[],
+        );
+      }
+    },
+    onError: (_err: any) => {
+      const errorMessage =
+        _err?.response?.data?.message || "An unexpected error occurred";
+      setTimeout(() => toast.error(errorMessage), 200);
+    },
+  });
+}
+export function useUpdateMultipleProductMutations() {
+  const queryKey = [baseUrl];
+  const queryClient = useQueryClient();
+  const { setErrorDataForProductBulkCreation } = useGeneralContext();
+  return useMutation({
+    mutationFn: updateMultipleProduct,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+    },
+    onSettled: (response) => {
+      if (response) {
+        setErrorDataForProductBulkCreation(
+          response as Record<string, unknown>[],
+        );
+      }
+    },
+    onError: (_err: any) => {
+      const errorMessage =
+        _err?.response?.data?.message || "An unexpected error occurred";
+      setTimeout(() => toast.error(errorMessage), 200);
+    },
+  });
+}
+export function joinProducts({
+  stayedProduct,
+  removedProduct,
+}: JoinProductsRequest): Promise<AccountProduct> {
+  return post<JoinProductsRequest, AccountProduct>({
+    path: `${Paths.Accounting}/products/join`,
+    payload: { stayedProduct, removedProduct },
+  });
+}
+export function useJoinProductsMutation() {
+  const queryKey = [baseUrl];
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: joinProducts,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+    onError: (_err: any) => {
+      const errorMessage =
+        _err?.response?.data?.message || "An unexpected error occurred";
+      setTimeout(() => toast.error(errorMessage), 200);
+    },
+  });
+}
+
+export function useGetAccountProducts() {
+  return useGetList<AccountProduct>(baseUrl);
+}
+
+export function useGetAllAccountProducts() {
+  return useGetList<AccountProduct>(allProductsBaseUrl);
+}
+
+export function useGetGameBatchesWithFIFO(location?: number) {
+  let gameBatchesUrl = `${Paths.Accounting}/game-batches`;
+  if (location) {
+    gameBatchesUrl += `?location=${location}`;
+  }
+  return useGetList<GameBatchFIFO>(gameBatchesUrl);
+}
