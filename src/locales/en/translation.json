@@ -1490,5 +1490,14 @@
   "Max Price": "Max Price",
   "Price Gap": "Price Gap",
   "Available Sites": "Available Sites",
-  "Archived": "Archived"
+  "Archived": "Archived",
+  "Admins": "Admins",
+  "Delete Admin": "Delete Admin",
+  "Card Sets": "Card Sets",
+  "Add Card Set": "Add Card Set",
+  "Delete Card Set": "Delete Card Set",
+  "Game Type": "Game Type",
+  "Cards": "Cards",
+  "Add Card": "Add Card",
+  "Delete Card": "Delete Card"
 }

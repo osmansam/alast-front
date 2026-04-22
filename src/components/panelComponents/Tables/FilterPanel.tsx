@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IoIosClose } from "react-icons/io";
-import type { ActionMeta, MultiValue, SingleValue } from "react-select";
+import { ActionMeta, MultiValue, SingleValue } from "react-select";
 import { GenericButton } from "../../../common/GenericButton";
 import { useGeneralContext } from "../../../context/General.context";
-import type { FormElementsState, OptionType } from "../../../types";
+import { FormElementsState, OptionType } from "../../../types";
 import DateInput from "../FormElements/DateInput";
 import HourInput from "../FormElements/HourInput";
 import MonthYearInput from "../FormElements/MonthYearInput";
 import SelectInput from "../FormElements/SelectInput";
 import TextInput from "../FormElements/TextInput";
 import { H4, H6 } from "../Typography";
-import type { PanelFilterType } from "../shared/types";
-import { InputTypes } from "../shared/types";
+import { InputTypes, PanelFilterType } from "../shared/types";
 
-const FilterPanel = ({
+const FilterPanel = <T,>({
   inputs,
   formElements,
   setFormElements,
@@ -29,27 +28,18 @@ const FilterPanel = ({
   const [tempFormElements, setTempFormElements] =
     useState<FormElementsState>(formElements);
 
-  const activeFormElements = isApplyButtonActive
-    ? tempFormElements
-    : formElements;
-
-  const updateFormElements = (
-    updater: (prev: FormElementsState) => FormElementsState,
-  ) => {
-    if (isApplyButtonActive) {
-      setTempFormElements(updater);
-      return;
+  // Sync tempFormElements with formElements when not in apply button mode
+  useEffect(() => {
+    if (!isApplyButtonActive) {
+      setTempFormElements(formElements);
     }
-
-    setFormElements(updater);
-  };
-
+  }, [formElements, isApplyButtonActive]);
   const applyFilters = () => {
     setFormElements(tempFormElements);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to the first page after applying filters
   };
   const handleClearAllFilters = () => {
-    updateFormElements((prev) => {
+    setFormElements((prev) => {
       const newFormElements = { ...prev };
       inputs.forEach((input) => {
         newFormElements[input.formKey] = "";
@@ -86,19 +76,28 @@ const FilterPanel = ({
         )}
       </div>
       {inputs.map((input) => {
-        const value = activeFormElements[input.formKey] ?? "";
+        const value = tempFormElements[input.formKey] ?? "";
         const handleChange = (key: string) => (value: string) => {
           const changedInput = inputs.find((input) => input.formKey === key);
           if (changedInput?.invalidateKeys) {
             changedInput.invalidateKeys.forEach((key) => {
-              updateFormElements((prev) => ({
-                ...prev,
-                [key.key]: key.defaultValue,
-              }));
+              if (isApplyButtonActive) {
+                setTempFormElements((prev) => ({
+                  ...prev,
+                  [key.key]: key.defaultValue,
+                }));
+              } else {
+                setFormElements((prev) => ({
+                  ...prev,
+                  [key.key]: key.defaultValue,
+                }));
+              }
             });
           }
 
-          updateFormElements((prev) => ({ ...prev, [key]: value }));
+          isApplyButtonActive
+            ? setTempFormElements((prev) => ({ ...prev, [key]: value }))
+            : setFormElements((prev) => ({ ...prev, [key]: value }));
           setCurrentPage(1);
         };
 
@@ -115,34 +114,47 @@ const FilterPanel = ({
             ) {
               if (Array.isArray(selectedValue)) {
                 const values = selectedValue.map((option) => option.value);
-                updateFormElements((prev) => ({ ...prev, [key]: values }));
+                isApplyButtonActive
+                  ? setTempFormElements((prev) => ({ ...prev, [key]: values }))
+                  : setFormElements((prev) => ({ ...prev, [key]: values }));
               } else if (selectedValue) {
-                updateFormElements((prev) => ({
-                  ...prev,
-                  [key]: (selectedValue as OptionType)?.value,
-                }));
+                isApplyButtonActive
+                  ? setTempFormElements((prev) => ({
+                      ...prev,
+                      [key]: (selectedValue as OptionType)?.value,
+                    }))
+                  : setFormElements((prev) => ({
+                      ...prev,
+                      [key]: (selectedValue as OptionType)?.value,
+                    }));
               } else {
-                updateFormElements((prev) => ({
-                  ...prev,
-                  [key]: "",
-                }));
+                isApplyButtonActive
+                  ? setTempFormElements((prev) => ({
+                      ...prev,
+                      [key]: "",
+                    }))
+                  : setFormElements((prev) => ({
+                      ...prev,
+                      [key]: "",
+                    }));
               }
             }
             const changedInput = inputs.find((input) => input.formKey === key);
             if (changedInput?.invalidateKeys) {
               changedInput.invalidateKeys.forEach((key) => {
-                updateFormElements((prev) => ({
-                  ...prev,
-                  [key.key]: key.defaultValue,
-                }));
+                isApplyButtonActive
+                  ? setTempFormElements((prev) => ({
+                      ...prev,
+                      [key.key]: key.defaultValue,
+                    }))
+                  : setFormElements((prev) => ({
+                      ...prev,
+                      [key.key]: key.defaultValue,
+                    }));
               });
             }
             if (changedInput?.additionalOnChange) {
-              changedInput.additionalOnChange(
-                Array.isArray(selectedValue)
-                  ? (Array.from(selectedValue) as OptionType[])
-                  : (selectedValue as OptionType | null),
-              );
+              changedInput.additionalOnChange(selectedValue as OptionType);
             }
             setCurrentPage(1);
           };
@@ -165,10 +177,15 @@ const FilterPanel = ({
                 isOnClearActive={input?.isOnClearActive}
                 isDebounce={input?.isDebounce ?? false}
                 onClear={() =>
-                  updateFormElements((prev) => ({
-                    ...prev,
-                    [input.formKey]: "",
-                  }))
+                  isApplyButtonActive
+                    ? setTempFormElements((prev) => ({
+                        ...prev,
+                        [input.formKey]: "",
+                      }))
+                    : setFormElements((prev) => ({
+                        ...prev,
+                        [input.formKey]: "",
+                      }))
                 }
               />
             )}
@@ -183,7 +200,7 @@ const FilterPanel = ({
                 }
                 placeholder={input.placeholder ?? ""}
                 onChange={(val) => handleChange(input.formKey)(val ?? "")}
-                isArrowsEnabled={input.isArrowsEnabled ?? false}
+                isArrowsEnabled={input.isArrowsEnabled ?? true}
                 requiredField={input.required}
                 isOnClearActive={input?.isOnClearActive ?? true}
                 isDateInitiallyOpen={input.isDateInitiallyOpen ?? false}
@@ -192,47 +209,43 @@ const FilterPanel = ({
                 isReadOnly={input.isReadOnly ?? false}
               />
             )}
-            {input.type === InputTypes.SELECT &&
-              !input.isDisabled &&
-              (() => {
-                const selectOptions = (input.options ?? []) as OptionType[];
-                const rawSelectValue = tempFormElements[input.formKey];
-                const selectedValues = Array.isArray(rawSelectValue)
-                  ? (rawSelectValue as string[])
-                  : [];
-
-                return (
-                  <SelectInput
-                    key={
-                      input.isMultiple
-                        ? input.formKey
-                        : input.formKey + tempFormElements[input.formKey]
-                    }
-                    value={
-                      input.isMultiple
-                        ? selectOptions.filter((option) =>
-                            selectedValues.includes(option.value),
-                          )
-                        : (selectOptions.find(
-                            (option) => option.value === rawSelectValue,
-                          ) ?? null)
-                    }
-                    label={input.label ?? ""}
-                    options={selectOptions}
-                    placeholder={input.placeholder ?? ""}
-                    isMultiple={input.isMultiple ?? false}
-                    isAutoFill={input.isAutoFill ?? true}
-                    onChange={handleChangeForSelect(input.formKey)}
-                    isOnClearActive={input?.isOnClearActive ?? true}
-                    onClear={() => {
-                      updateFormElements((prev) => ({
+            {input.type === InputTypes.SELECT && !input.isDisabled && (
+              <SelectInput
+                key={
+                  input.isMultiple
+                    ? input.formKey
+                    : input.formKey + tempFormElements[input.formKey]
+                }
+                value={
+                  input.isMultiple
+                    ? input.options?.filter((option) =>
+                        tempFormElements[input.formKey]?.includes(option.value),
+                      )
+                    : (input.options?.find(
+                        (option) =>
+                          option.value === tempFormElements[input.formKey],
+                      ) as any)
+                }
+                label={input.label ?? ""}
+                options={input.options ?? []}
+                placeholder={input.placeholder ?? ""}
+                isMultiple={input.isMultiple ?? false}
+                isAutoFill={input.isAutoFill ?? true}
+                onChange={handleChangeForSelect(input.formKey)}
+                isOnClearActive={input?.isOnClearActive ?? true}
+                onClear={() => {
+                  isApplyButtonActive
+                    ? setTempFormElements((prev) => ({
+                        ...prev,
+                        [input.formKey]: input.isMultiple ? [] : "",
+                      }))
+                    : setFormElements((prev) => ({
                         ...prev,
                         [input.formKey]: input.isMultiple ? [] : "",
                       }));
-                    }}
-                  />
-                );
-              })()}
+                }}
+              />
+            )}
             {input.type === InputTypes.MONTHYEAR && (
               <MonthYearInput
                 key={input.formKey}

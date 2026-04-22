@@ -152,6 +152,7 @@ export const InputTypes = {
   TAB: "tab",
   DAILYHOURS: "dailyHours",
   QUICKSELECT: "quickSelect",
+  EMAIL: "email",
 } as const;
 
 export type InputTypes = (typeof InputTypes)[keyof typeof InputTypes];

@@ -372,7 +372,19 @@ const GenericAddEditPanel = <T,>({
           return false; // Validation passed for phone number
         });
 
-      if (!phoneValidationFailed) {
+      const emailValidationFailed = inputs
+        .filter((input) => input.type === InputTypes.EMAIL)
+        .some((input) => {
+          const inputValue = formElements[input.formKey];
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(inputValue)) {
+            toast.error(t("Please enter a valid email address."));
+            return true; // Validation failed for email
+          }
+          return false; // Validation passed for email
+        });
+
+      if (!phoneValidationFailed && !emailValidationFailed) {
         handleSubmit();
       }
     } else if (optionalCreateButtonActive) {
@@ -610,7 +622,8 @@ const GenericAddEditPanel = <T,>({
                         input.type === InputTypes.TIME ||
                         input.type === InputTypes.COLOR ||
                         input.type === InputTypes.CHECKBOX ||
-                        input.type === InputTypes.PASSWORD) && (
+                        input.type === InputTypes.PASSWORD ||
+                        input.type === InputTypes.EMAIL) && (
                         <TextInput
                           key={input.formKey + resetTextInput}
                           type={input.type}

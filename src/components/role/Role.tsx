@@ -1,0 +1,157 @@
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { FiEdit } from "react-icons/fi";
+import { useUserContext } from "../../context/User.context";
+import { Role } from "../../types";
+import { UpdatePayload } from "../../utils/api";
+import { useGetRoles, useRoleMutations } from "../../utils/api/user/role";
+import GenericAddEditPanel from "../panelComponents/FormElements/GenericAddEditPanel";
+import { FormKeyTypeEnum, InputTypes } from "../panelComponents/shared/types";
+import GenericTable from "../panelComponents/Tables/GenericTable";
+
+const Roles = () => {
+  const { t } = useTranslation();
+  const { user } = useUserContext();
+  const roles = useGetRoles();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [rowToAction, setRowToAction] = useState<Role>();
+  const { createRole, updateRole } = useRoleMutations();
+
+  const rows = useMemo(() => {
+    return roles ?? [];
+  }, [roles]);
+
+  const columns = useMemo(
+    () => [
+      { key: t("Name"), isSortable: true },
+      { key: t("Color"), isSortable: false },
+      { key: t("Actions"), isSortable: false },
+    ],
+    [t],
+  );
+
+  const rowKeys = useMemo(
+    () => [
+      { key: "name" },
+      {
+        key: "color",
+        node: (row: Role) => (
+          <div className="flex items-center gap-2">
+            <div
+              className="w-6 h-6 rounded-full border"
+              style={{ backgroundColor: row.color }}
+            />
+            <span>{row.color}</span>
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const inputs = useMemo(
+    () => [
+      {
+        type: InputTypes.TEXT,
+        formKey: "name",
+        label: t("Name"),
+        placeholder: t("Name"),
+        required: true,
+      },
+      {
+        type: InputTypes.COLOR,
+        formKey: "color",
+        label: t("Color"),
+        placeholder: t("Color"),
+        required: true,
+      },
+    ],
+    [t],
+  );
+
+  const formKeys = useMemo(
+    () => [
+      { key: "name", type: FormKeyTypeEnum.STRING },
+      { key: "color", type: FormKeyTypeEnum.STRING },
+    ],
+    [],
+  );
+
+  const addButton = useMemo(
+    () => ({
+      name: t("Add Role"),
+      isModal: true,
+      modal: (
+        <GenericAddEditPanel
+          isOpen={isAddModalOpen}
+          close={() => setIsAddModalOpen(false)}
+          inputs={inputs}
+          formKeys={formKeys}
+          submitItem={
+            createRole as unknown as (
+              item: Partial<Role> | UpdatePayload<Partial<Role>>,
+            ) => void
+          }
+          topClassName="flex flex-col gap-2"
+        />
+      ),
+      isModalOpen: isAddModalOpen,
+      setIsModal: setIsAddModalOpen,
+      isPath: false,
+      className: "bg-blue-500 hover:text-blue-500 hover:border-blue-500",
+    }),
+    [t, isAddModalOpen, inputs, formKeys, createRole, user],
+  );
+
+  const actions = useMemo(
+    () => [
+      {
+        name: t("Edit"),
+        icon: <FiEdit />,
+        className: "text-blue-500 cursor-pointer text-xl",
+        isModal: true,
+        setRow: setRowToAction,
+        modal: rowToAction ? (
+          <GenericAddEditPanel
+            isOpen={isEditModalOpen}
+            close={() => setIsEditModalOpen(false)}
+            inputs={inputs}
+            formKeys={formKeys}
+            submitItem={
+              updateRole as unknown as (
+                item: Role | UpdatePayload<Role>,
+              ) => void
+            }
+            isEditMode={true}
+            topClassName="flex flex-col gap-2"
+            itemToEdit={{
+              id: rowToAction._id,
+              updates: rowToAction,
+            }}
+          />
+        ) : null,
+        isModalOpen: isEditModalOpen,
+        setIsModal: setIsEditModalOpen,
+        isPath: false,
+      },
+    ],
+    [t, rowToAction, isEditModalOpen, inputs, formKeys, updateRole, user],
+  );
+
+  return (
+    <div className="w-[95%] mx-auto">
+      <GenericTable
+        rowKeys={rowKeys}
+        actions={actions}
+        columns={columns}
+        rows={rows}
+        title={t("Roles")}
+        addButton={addButton}
+        isActionsActive={true}
+      />
+    </div>
+  );
+};
+
+export default Roles;

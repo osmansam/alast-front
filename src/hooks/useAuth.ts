@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useGeneralContext } from "../context/General.context";
 import { useUserContext } from "../context/User.context";
 import { ACCESS_TOKEN } from "../utils/api/axiosClient";
 import { Paths } from "../utils/api/factory";
 import { getUserWithToken } from "../utils/api/user";
-import { useGeneralContext } from "./../context/General.context";
 import { languageOptions, RowPerPageEnum } from "./../types/index";
 
 const useAuth = () => {
@@ -31,7 +31,7 @@ const useAuth = () => {
           i18n.changeLanguage(
             loggedInUser?.language ?? languageOptions[0].code,
           );
-          setRowsPerPage(loggedInUser?.rowsPerPage ?? RowPerPageEnum.FIRST);
+          setRowsPerPage(RowPerPageEnum.THIRD);
         } catch (e) {
           console.log(e);
           navigate(Paths.Login, {

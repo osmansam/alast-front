@@ -1,26 +1,15 @@
-import type { PropsWithChildren } from "react";
+import type { Dispatch, PropsWithChildren, SetStateAction } from "react";
 import { createContext, useContext, useState } from "react";
 import type { TabOption } from "../components/panelComponents/FormElements/TabInputScreen";
 import type { ColumnType } from "../components/panelComponents/shared/types";
-import {
-  type AccountExpense,
-  type AccountOverallExpense,
-  AccountingPageTabEnum,
-  ExpensesPageTabEnum,
-  type MenuItem,
-  RowPerPageEnum,
-  StockHistoriesReportsPageTabEnum,
-  StocksPageTabEnum,
-} from "../types";
+import { RowPerPageEnum } from "../types";
 import { useUserContext } from "./User.context";
 
-type CountListOptions = string;
-type CreateMultipleExpense = unknown;
-type CreateBulkProductAndMenuItem = unknown;
-
-const countListOptions: CountListOptions[] = ["default"];
-
 export type TabOrientation = "horizontal" | "vertical";
+
+type FormElementsState = {
+  [key: string]: any;
+};
 
 type GeneralContextType = {
   sortConfigKey: {
@@ -33,94 +22,36 @@ type GeneralContextType = {
       direction: "ascending" | "descending";
     } | null,
   ) => void;
-  expirationActiveTab: number;
-  setExpirationActiveTab: (tab: number) => void;
-  profileActiveTab: number;
-  setProfileActiveTab: (tab: number) => void;
+  constantActiveTab: number;
+  setConstantActiveTab: (tab: number) => void;
   userPageActiveTab: number;
   setUserPageActiveTab: (tab: number) => void;
-  showStockFilters: boolean;
   isNotificationOpen: boolean;
   setIsNotificationOpen: (open: boolean) => void;
-  setShowStockFilters: (show: boolean) => void;
-  productExpenseForm: Partial<AccountExpense>;
-  errorDataForCreateMultipleExpense: CreateMultipleExpense[];
-  setErrorDataForCreateMultipleExpense: (data: CreateMultipleExpense[]) => void;
-  errorDataForProductBulkCreation: CreateBulkProductAndMenuItem[];
-  setErrorDataForProductBulkCreation: (
-    data: CreateBulkProductAndMenuItem[],
-  ) => void;
-  selectedMenuItem: MenuItem | null;
-  setSelectedMenuItem: (item: MenuItem | null) => void;
-  setProductExpenseForm: (form: Partial<AccountExpense>) => void;
-  countListOption: CountListOptions;
-  setCountListOption: (option: CountListOptions) => void;
-  serviceExpenseForm: Partial<AccountExpense>;
-  setServiceExpenseForm: (form: Partial<AccountOverallExpense>) => void;
-  allExpenseForm: Partial<AccountOverallExpense>;
-  setAllExpenseForm: (form: Partial<AccountExpense>) => void;
+  isLogoutModalOpen: boolean;
+  setIsLogoutModalOpen: (open: boolean) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  isMenuCategoryLocationEdit: boolean;
-  setIsMenuCategoryLocationEdit: (edit: boolean) => void;
-  menuActiveTab: number;
-  setMenuActiveTab: (tab: number) => void;
-  countListActiveTab: number;
-  setCountListActiveTab: (tab: number) => void;
-  checklistActiveTab: number;
-  setChecklistActiveTab: (tab: number) => void;
-  panelControlActiveTab: number;
-  setPanelControlActiveTab: (tab: number) => void;
-  orderDataActiveTab: number;
-  setOrderDataActiveTab: (tab: number) => void;
-  accountingActiveTab: number;
-  ordersActiveTab: number;
-  setOrdersActiveTab: (tab: number) => void;
-  checkoutActiveTab: number;
-  setCheckoutActiveTab: (tab: number) => void;
-  setAccountingActiveTab: (tab: number) => void;
-  expensesActiveTab: number;
-  setExpensesActiveTab: (tab: number) => void;
-  stocksActiveTab: number;
-  setStocksActiveTab: (tab: number) => void;
-  integrationActiveTab: number;
-  setIntegrationActiveTab: (tab: number) => void;
-  stockHistoriesReportsActiveTab: number;
-  setStockHistoriesReportsActiveTab: (tab: number) => void;
-  pointsActiveTab: number;
-  setPointsActiveTab: (tab: number) => void;
-  consumerActiveTab: number;
-  setConsumerActiveTab: (tab: number) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   rowsPerPage: number;
   setRowsPerPage: (rowsPerPage: number) => void;
-  expandedRows: { [key: string]: boolean };
-  setExpandedRows: React.Dispatch<
-    React.SetStateAction<{ [key: string]: boolean }>
-  >;
-  tableColumns: { [key: string]: ColumnType[] };
-  setTableColumns: React.Dispatch<
-    React.SetStateAction<{ [key: string]: ColumnType[] }>
-  >;
+  expandedRows: Record<string, boolean>;
+  setExpandedRows: Dispatch<SetStateAction<Record<string, boolean>>>;
+  tableColumns: Record<string, ColumnType[]>;
+  setTableColumns: Dispatch<SetStateAction<Record<string, ColumnType[]>>>;
   isSelectionActive: boolean;
   setIsSelectionActive: (isActive: boolean) => void;
   selectedRows: any[];
   setSelectedRows: (rows: any[]) => void;
   resetGeneralContext: () => void;
-  isShownInMenu: boolean;
-  setIsShownInMenu: (isShown: boolean) => void;
-  isMenuShowIkasCategories: boolean;
-  setIsMenuShowIkasCategories: (isShown: boolean) => void;
-  isMenuLocationEdit: boolean;
-  setIsMenuLocationEdit: (isShown: boolean) => void;
   isTabInputScreenOpen: boolean;
   setIsTabInputScreenOpen: (isOpen: boolean) => void;
   tabInputScreenOptions: TabOption[];
   setTabInputScreenOptions: (options: TabOption[]) => void;
   tabInputFormKey: string;
   setTabInputFormKey: (key: string) => void;
-  tabInputInvalidateKeys?: {
+  tabInputInvalidateKeys: {
     key: string;
     defaultValue: any;
   }[];
@@ -136,141 +67,38 @@ type GeneralContextType = {
   setIsHoverExpanded: (expanded: boolean) => void;
   tabOrientation: TabOrientation;
   setTabOrientation: (orientation: TabOrientation) => void;
-  isLogoutModalOpen: boolean;
-  setIsLogoutModalOpen: (open: boolean) => void;
-  showAllOrders: boolean;
-  setShowAllOrders: (show: boolean) => void;
-  showServedOrders: boolean;
-  setShowServedOrders: (show: boolean) => void;
-  showAllTables: boolean;
-  setShowAllTables: (show: boolean) => void;
-  showAllGameplays: boolean;
-  setShowAllGameplays: (show: boolean) => void;
+  showTeacherFilter: boolean;
+  setShowTeacherFilter: (show: boolean) => void;
+  filterTeacherFormElements: FormElementsState;
+  setFilterTeacherFormElements: (state: FormElementsState) => void;
 };
 
 const GeneralContext = createContext<GeneralContextType>({
-  expirationActiveTab: 0,
-  setExpirationActiveTab: () => {},
-  userPageActiveTab: 0,
-  setUserPageActiveTab: () => {},
-  profileActiveTab: 0,
-  setProfileActiveTab: () => {},
-  isNotificationOpen: false,
-  setIsNotificationOpen: () => {},
-  isMenuCategoryLocationEdit: false,
-  setIsMenuCategoryLocationEdit: () => {},
-  showStockFilters: false,
-  setShowStockFilters: () => {},
-  isMenuShowIkasCategories: false,
-  setIsMenuShowIkasCategories: () => {},
-  errorDataForCreateMultipleExpense: [],
-  setErrorDataForCreateMultipleExpense: () => {},
-  selectedMenuItem: null,
-  setSelectedMenuItem: () => {},
   sortConfigKey: null,
   setSortConfigKey: () => {},
-  countListOption: countListOptions[0],
-  setCountListOption: () => {},
-  setAccountingActiveTab: () => {},
-  accountingActiveTab: AccountingPageTabEnum.EXPENSETYPE,
-  checkoutActiveTab: 0,
-  setCheckoutActiveTab: () => {},
-  ordersActiveTab: 0,
-  setOrdersActiveTab: () => {},
-  setExpensesActiveTab: () => {},
-  expensesActiveTab: ExpensesPageTabEnum.INVOICE,
-  setStocksActiveTab: () => {},
-  stocksActiveTab: StocksPageTabEnum.STOCK,
-  setIntegrationActiveTab: () => {},
-  integrationActiveTab: 0,
-  setStockHistoriesReportsActiveTab: () => {},
-  stockHistoriesReportsActiveTab:
-    StockHistoriesReportsPageTabEnum.LOSSPRODUCTREPORT,
-  setPointsActiveTab: () => {},
-  pointsActiveTab: 0,
-  setConsumerActiveTab: () => {},
-  consumerActiveTab: 0,
-  menuActiveTab: 0,
-  setMenuActiveTab: () => {},
-  countListActiveTab: 0,
-  setCountListActiveTab: () => {},
-  checklistActiveTab: 0,
-  setChecklistActiveTab: () => {},
-  panelControlActiveTab: 0,
-  setPanelControlActiveTab: () => {},
-  setCurrentPage: () => {},
+  constantActiveTab: 0,
+  setConstantActiveTab: () => {},
+  userPageActiveTab: 0,
+  setUserPageActiveTab: () => {},
+  isNotificationOpen: false,
+  setIsNotificationOpen: () => {},
+  isLogoutModalOpen: false,
+  setIsLogoutModalOpen: () => {},
   currentPage: 1,
+  setCurrentPage: () => {},
   searchQuery: "",
   setSearchQuery: () => {},
-  rowsPerPage: RowPerPageEnum.FIRST,
+  rowsPerPage: RowPerPageEnum.THIRD,
   setRowsPerPage: () => {},
   expandedRows: {},
   setExpandedRows: () => {},
-  productExpenseForm: {
-    date: "",
-    product: "",
-    expenseType: "",
-    quantity: 0,
-    totalExpense: 0,
-    brand: "",
-    location: 0,
-    vendor: "",
-    note: "",
-    paymentMethod: "",
-    price: 0,
-    vat: 0,
-    isStockIncrement: true,
-    discount: 0,
-  },
-  setProductExpenseForm: () => {},
-  serviceExpenseForm: {
-    date: "",
-    service: "",
-    expenseType: "",
-    quantity: 0,
-    totalExpense: 0,
-    location: 0,
-    vendor: "",
-    note: "",
-    paymentMethod: "",
-    price: 0,
-    vat: 0,
-    discount: 0,
-  },
-  allExpenseForm: {
-    date: "",
-    product: "",
-    service: "",
-    type: "",
-    expenseType: "",
-    quantity: 0,
-    totalExpense: 0,
-    paymentMethod: "",
-    brand: "",
-    location: 0,
-    vendor: "",
-    note: "",
-    price: 0,
-    vat: 0,
-    discount: 0,
-  },
-  setAllExpenseForm: () => {},
-  setServiceExpenseForm: () => {},
-  orderDataActiveTab: 0,
-  setOrderDataActiveTab: () => {},
   tableColumns: {},
   setTableColumns: () => {},
-  errorDataForProductBulkCreation: [],
-  setErrorDataForProductBulkCreation: () => {},
   isSelectionActive: false,
   setIsSelectionActive: () => {},
   selectedRows: [],
   setSelectedRows: () => {},
   resetGeneralContext: () => {},
-  isShownInMenu: false,
-  setIsShownInMenu: () => {},
-  isMenuLocationEdit: false,
-  setIsMenuLocationEdit: () => {},
   isTabInputScreenOpen: false,
   setIsTabInputScreenOpen: () => {},
   tabInputScreenOptions: [],
@@ -285,163 +113,68 @@ const GeneralContext = createContext<GeneralContextType>({
   setIsHoverExpanded: () => {},
   tabOrientation: "horizontal",
   setTabOrientation: () => {},
-  isLogoutModalOpen: false,
-  setIsLogoutModalOpen: () => {},
-  showAllOrders: true,
-  setShowAllOrders: () => {},
-  showServedOrders: true,
-  setShowServedOrders: () => {},
-  showAllTables: true,
-  setShowAllTables: () => {},
-  showAllGameplays: true,
-  setShowAllGameplays: () => {},
+  showTeacherFilter: false,
+  setShowTeacherFilter: () => {},
+  filterTeacherFormElements: {
+    school: 0,
+  },
+  setFilterTeacherFormElements: () => {},
 });
 
 export const GeneralContextProvider = ({ children }: PropsWithChildren) => {
   const { user } = useUserContext();
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [profileActiveTab, setProfileActiveTab] = useState<number>(0);
-  const [expirationActiveTab, setExpirationActiveTab] = useState<number>(0);
-  const [isMenuLocationEdit, setIsMenuLocationEdit] = useState<boolean>(false);
-  const [showStockFilters, setShowStockFilters] = useState<boolean>(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState<boolean>(false);
-  const [tabInputFormKey, setTabInputFormKey] = useState<string>("");
-  const [tabInputInvalidateKeys, setTabInputInvalidateKeys] = useState<
-    { key: string; defaultValue: any }[]
-  >([]);
-  const [tabInputScreenOptions, setTabInputScreenOptions] = useState<
-    TabOption[]
-  >([]);
-  const [isTabInputScreenOpen, setIsTabInputScreenOpen] =
-    useState<boolean>(false);
-  const [userPageActiveTab, setUserPageActiveTab] = useState<number>(0);
-  const [isMenuCategoryLocationEdit, setIsMenuCategoryLocationEdit] =
-    useState<boolean>(false);
-  const [errorDataForProductBulkCreation, setErrorDataForProductBulkCreation] =
-    useState<CreateBulkProductAndMenuItem[]>([]);
-  const [
-    errorDataForCreateMultipleExpense,
-    setErrorDataForCreateMultipleExpense,
-  ] = useState<CreateMultipleExpense[]>([]);
-  const [checklistActiveTab, setChecklistActiveTab] = useState<number>(0);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(
-    null,
-  );
-  const [isMenuShowIkasCategories, setIsMenuShowIkasCategories] =
-    useState<boolean>(false);
-  const [isSelectionActive, setIsSelectionActive] = useState<boolean>(false);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(
-    user?.rowsPerPage ?? RowPerPageEnum.THIRD,
-  );
-
-  const [tableColumns, setTableColumns] = useState<{
-    [key: string]: ColumnType[];
-  }>({});
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  useState<boolean>(false);
-  const [countListOption, setCountListOption] = useState<CountListOptions>(
-    countListOptions[0],
-  );
-  const [ordersActiveTab, setOrdersActiveTab] = useState<number>(0);
-  const [productExpenseForm, setProductExpenseForm] = useState<
-    Partial<AccountExpense>
-  >({});
   const [sortConfigKey, setSortConfigKey] = useState<{
     key: string;
     direction: "ascending" | "descending";
   } | null>(null);
+  const [constantActiveTab, setConstantActiveTab] = useState<number>(0);
+  const [filterTeacherFormElements, setFilterTeacherFormElements] =
+    useState<FormElementsState>({
+      school: "",
+    });
+  const [userPageActiveTab, setUserPageActiveTab] = useState<number>(0);
+  const [isNotificationOpen, setIsNotificationOpen] = useState<boolean>(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
 
-  const [serviceExpenseForm, setServiceExpenseForm] = useState<
-    Partial<AccountExpense>
-  >({});
-  useState<boolean>(false);
-  const [expensesActiveTab, setExpensesActiveTab] = useState<number>(
-    ExpensesPageTabEnum.INVOICE,
-  );
-  const [stocksActiveTab, setStocksActiveTab] = useState<number>(
-    StocksPageTabEnum.STOCK,
-  );
-  const [integrationActiveTab, setIntegrationActiveTab] = useState<number>(0);
-  const [stockHistoriesReportsActiveTab, setStockHistoriesReportsActiveTab] =
-    useState<number>(StockHistoriesReportsPageTabEnum.LOSSPRODUCTREPORT);
-  const [pointsActiveTab, setPointsActiveTab] = useState<number>(0);
-  const [consumerActiveTab, setConsumerActiveTab] = useState<number>(0);
-  const [accountingActiveTab, setAccountingActiveTab] = useState<number>(
-    AccountingPageTabEnum.EXPENSETYPE,
-  );
-  const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>(
-    {},
-  );
-  const [isShownInMenu, setIsShownInMenu] = useState(false);
-  const [allExpenseForm, setAllExpenseForm] = useState<
-    Partial<AccountOverallExpense>
-  >({});
-  const [menuActiveTab, setMenuActiveTab] = useState<number>(0);
-  const [checkoutActiveTab, setCheckoutActiveTab] = useState<number>(0);
-  const [countListActiveTab, setCountListActiveTab] = useState<number>(0);
-  const [panelControlActiveTab, setPanelControlActiveTab] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [orderDataActiveTab, setOrderDataActiveTab] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(RowPerPageEnum.THIRD);
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [tableColumns, setTableColumns] = useState<
+    Record<string, ColumnType[]>
+  >({});
+  const [isSelectionActive, setIsSelectionActive] = useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [isTabInputScreenOpen, setIsTabInputScreenOpen] =
+    useState<boolean>(false);
+  const [tabInputScreenOptions, setTabInputScreenOptions] = useState<
+    TabOption[]
+  >([]);
+  const [tabInputFormKey, setTabInputFormKey] = useState<string>("");
+  const [tabInputInvalidateKeys, setTabInputInvalidateKeys] = useState<
+    { key: string; defaultValue: any }[]
+  >([]);
   const [isSidebarOpen, setIsSidebarOpenState] = useState<boolean>(() => {
     const saved = localStorage.getItem("sidebar-open");
     return saved ? JSON.parse(saved) : true;
   });
-
-  const setIsSidebarOpen = (open: boolean) => {
-    localStorage.setItem("sidebar-open", JSON.stringify(open));
-    setIsSidebarOpenState(open);
-  };
-
   const [isHoverExpanded, setIsHoverExpanded] = useState<boolean>(false);
-
   const [tabOrientation, setTabOrientationState] = useState<TabOrientation>(
     () => {
       const saved = localStorage.getItem("tab-orientation");
       return (saved as TabOrientation) || "horizontal";
     },
   );
+  const [showTeacherFilter, setShowTeacherFilter] = useState<boolean>(false);
+
+  const setIsSidebarOpen = (open: boolean) => {
+    localStorage.setItem("sidebar-open", JSON.stringify(open));
+    setIsSidebarOpenState(open);
+  };
 
   const setTabOrientation = (orientation: TabOrientation) => {
     localStorage.setItem("tab-orientation", orientation);
     setTabOrientationState(orientation);
-  };
-
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
-
-  const [showAllOrders, setShowAllOrdersState] = useState<boolean>(() => {
-    const saved = localStorage.getItem("show-all-orders");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const setShowAllOrders = (show: boolean) => {
-    localStorage.setItem("show-all-orders", JSON.stringify(show));
-    setShowAllOrdersState(show);
-  };
-
-  const [showServedOrders, setShowServedOrdersState] = useState<boolean>(() => {
-    const saved = localStorage.getItem("show-served-orders");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const setShowServedOrders = (show: boolean) => {
-    localStorage.setItem("show-served-orders", JSON.stringify(show));
-    setShowServedOrdersState(show);
-  };
-
-  const [showAllTables, setShowAllTablesState] = useState<boolean>(() => {
-    const saved = localStorage.getItem("show-all-tables");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const setShowAllTables = (show: boolean) => {
-    localStorage.setItem("show-all-tables", JSON.stringify(show));
-    setShowAllTablesState(show);
-  };
-
-  const [showAllGameplays, setShowAllGameplaysState] = useState<boolean>(() => {
-    const saved = localStorage.getItem("show-all-gameplays");
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const setShowAllGameplays = (show: boolean) => {
-    localStorage.setItem("show-all-gameplays", JSON.stringify(show));
-    setShowAllGameplaysState(show);
   };
 
   const resetGeneralContext = () => {
@@ -461,83 +194,31 @@ export const GeneralContextProvider = ({ children }: PropsWithChildren) => {
   return (
     <GeneralContext.Provider
       value={{
-        expirationActiveTab,
-        setExpirationActiveTab,
-        userPageActiveTab,
-        setUserPageActiveTab,
-        profileActiveTab,
-        setProfileActiveTab,
-        isNotificationOpen,
-        setIsNotificationOpen,
-        isMenuCategoryLocationEdit,
-        setIsMenuCategoryLocationEdit,
-        showStockFilters,
-        setShowStockFilters,
-        isMenuLocationEdit,
-        setIsMenuLocationEdit,
-        isMenuShowIkasCategories,
-        setIsMenuShowIkasCategories,
-        errorDataForCreateMultipleExpense,
-        setErrorDataForCreateMultipleExpense,
-        selectedMenuItem,
-        setSelectedMenuItem,
-        tableColumns,
-        setTableColumns,
         sortConfigKey,
         setSortConfigKey,
-        countListOption,
-        setCountListOption,
-        checkoutActiveTab,
-        setCheckoutActiveTab,
+        constantActiveTab,
+        setConstantActiveTab,
+        userPageActiveTab,
+        setUserPageActiveTab,
+        isNotificationOpen,
+        setIsNotificationOpen,
+        isLogoutModalOpen,
+        setIsLogoutModalOpen,
         currentPage,
         setCurrentPage,
-        countListActiveTab,
-        setCountListActiveTab,
-        panelControlActiveTab,
-        setPanelControlActiveTab,
-        menuActiveTab,
-        setMenuActiveTab,
+        searchQuery,
+        setSearchQuery,
         rowsPerPage,
         setRowsPerPage,
         expandedRows,
-        stocksActiveTab,
-        setStocksActiveTab,
-        integrationActiveTab,
-        setIntegrationActiveTab,
-        stockHistoriesReportsActiveTab,
-        setStockHistoriesReportsActiveTab,
-        pointsActiveTab,
-        setPointsActiveTab,
-        consumerActiveTab,
-        setConsumerActiveTab,
         setExpandedRows,
-        searchQuery,
-        setSearchQuery,
-        accountingActiveTab,
-        setAccountingActiveTab,
-        expensesActiveTab,
-        setExpensesActiveTab,
-        productExpenseForm,
-        setProductExpenseForm,
-        serviceExpenseForm,
-        setServiceExpenseForm,
-        allExpenseForm,
-        setAllExpenseForm,
-        orderDataActiveTab,
-        setOrderDataActiveTab,
-        ordersActiveTab,
-        setOrdersActiveTab,
-        errorDataForProductBulkCreation,
-        setErrorDataForProductBulkCreation,
+        tableColumns,
+        setTableColumns,
         isSelectionActive,
         setIsSelectionActive,
         selectedRows,
         setSelectedRows,
         resetGeneralContext,
-        isShownInMenu,
-        setIsShownInMenu,
-        checklistActiveTab,
-        setChecklistActiveTab,
         isTabInputScreenOpen,
         setIsTabInputScreenOpen,
         tabInputScreenOptions,
@@ -552,16 +233,10 @@ export const GeneralContextProvider = ({ children }: PropsWithChildren) => {
         setIsHoverExpanded,
         tabOrientation,
         setTabOrientation,
-        isLogoutModalOpen,
-        setIsLogoutModalOpen,
-        showAllOrders,
-        setShowAllOrders,
-        showServedOrders,
-        setShowServedOrders,
-        showAllTables,
-        setShowAllTables,
-        showAllGameplays,
-        setShowAllGameplays,
+        showTeacherFilter,
+        setShowTeacherFilter,
+        filterTeacherFormElements,
+        setFilterTeacherFormElements,
       }}
     >
       {children}

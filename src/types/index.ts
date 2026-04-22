@@ -159,6 +159,48 @@ export type Consumer = {
   updatedAt: Date;
 };
 
+export type School = {
+  _id: string;
+  name: string;
+  isDeleted: boolean;
+};
+
+export type CardSet = {
+  _id: number;
+  teacher: number | User;
+  game_type: string;
+  name: string;
+  isDeleted: boolean;
+};
+
+export type Card = {
+  _id: number;
+  cardSet: number | CardSet;
+  content: string;
+  answer: string;
+  isDeleted: boolean;
+};
+
+export type Experiment = {
+  _id: number;
+  name: string;
+  type: string;
+  description: string;
+  teacher: number | User;
+  isDeleted: boolean;
+  create_time?: Date;
+};
+
+export type Class = {
+  _id: number;
+  name: string;
+  classId: string;
+  grade: number;
+  teacher: number | User;
+  school: string | School;
+  isDeleted: boolean;
+};
+
 export type Location = {
   _id: number;
   name: string;
@@ -232,32 +274,12 @@ export enum WorkType {
 }
 
 export type User = {
-  _id: string;
-  name: string;
-  fullName: string;
-  active: boolean;
-  role: Role;
-  jobStartDate: Date;
-  jobEndDate?: Date;
-  insuranceStartDate: Date;
-  profileImage?: string;
-  phone: string;
-  address: string;
-  iban: string;
-  birthDate: Date;
-  imageUrl: string;
-  workType: WorkType;
-  rowsPerPage?: number;
-  language?: string;
-  userGames: [
-    {
-      game: number;
-      learnDate: string;
-    }
-  ];
-  settings?: {
-    orderCategoryOn?: boolean;
-  };
+  _id: number;
+  first_name: string;
+  last_name: string;
+  school?: string | School;
+  role: Role | number;
+  isDeleted?: boolean;
 };
 
 export type Game = {
@@ -1291,28 +1313,9 @@ export type ShopifyProduct = {
 };
 
 export enum RoleEnum {
-  MANAGER = 1,
-  GAMEMASTER,
-  GAMEMANAGER,
-  OPERATIONSASISTANT,
-  BARISTA,
-  KITCHEN,
-  SERVICE,
-  CLEANING,
-  KITCHEN2,
-  KITCHEN3,
-  BARCHEF,
-}
-
-export enum RoleNameEnum {
-  MANAGER = "Manager",
-  GAMEMASTER = "Game Master",
-  GAMEMANAGER = "Game Manager",
-  OPERATIONALASISTANT = "Operations Assistant",
-  BARISTA = "Barista",
-  KITCHEN = "Kitchen",
-  SERVICE = "Service",
-  CLEANING = "Cleaning",
+  ADMIN = 1,
+  TEACHER,
+  STUDENT,
 }
 export enum ExpensesPageTabEnum {
   INVOICE,
@@ -1387,6 +1390,9 @@ export enum PanelControlPageTabEnum {
 }
 export enum PageDetailsPageTabEnum {
   PAGETABPERMISSIONS,
+}
+export enum ConstantPageTabsEnum {
+  ROLES,
 }
 export enum AccountingPageTabEnum {
   EXPENSETYPE,
@@ -2516,3 +2522,14 @@ export type CustomerPopup = {
   createdAt?: string;
   updatedAt?: string;
 };
+export const gradeInputs = [
+  { value: 6, label: "Grade 6" },
+  { value: 7, label: "Grade 7" },
+  { value: 8, label: "Grade 8" },
+];
+
+export const gameTypeInputs = [
+  { value: 1, label: "Minigame 1" },
+  { value: 2, label: "Minigame 2" },
+  { value: 3, label: "Minigame 3" },
+];

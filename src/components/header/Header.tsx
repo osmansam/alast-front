@@ -38,7 +38,7 @@ export function Header({ dateProps }: HeaderProps) {
             </Link>
             <Link to={Routes.Comparision} className="hidden sm:block">
               <span className="text-base text-white font-bold tracking-normal leading-tight">
-                Da Vinci Panel
+                ALAST Panel
               </span>
             </Link>
           </div>

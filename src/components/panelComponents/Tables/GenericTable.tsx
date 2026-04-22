@@ -1,3 +1,5 @@
+import { Tooltip } from "@material-tailwind/react";
+import "pdfmake/build/pdfmake";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BsFilePdf } from "react-icons/bs";
@@ -17,16 +19,17 @@ import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { GenericButton } from "../../../common/GenericButton";
 import { useGeneralContext } from "../../../context/General.context";
-import type { FormElementsState } from "../../../types";
-import { RowPerPageEnum } from "../../../types";
-import type { OutsideSearchProps } from "../../../utils/outsideSearch";
-import { outsideSearch } from "../../../utils/outsideSearch";
+import { FormElementsState, RowPerPageEnum } from "../../../types";
+import {
+  OutsideSearchProps,
+  outsideSearch,
+} from "../../../utils/outsideSearch";
 import { outsideSort } from "../../../utils/outsideSort";
 import ImageModal from "../Modals/ImageModal";
 import { OrientationToggle } from "../TabPanel/OrientationToggle";
 import { useTabPanelContext } from "../TabPanel/UnifiedTabPanel";
 import { Caption, H4, H5, P1 } from "../Typography";
-import type {
+import {
   ActionType,
   ColumnType,
   FilterType,
@@ -48,22 +51,8 @@ type OutsideSortProps = {
   setFilterPanelFormElements: (state: FormElementsState) => void;
 };
 
-type RowMeta<T extends Record<string, unknown>> = T & {
-  isSortable?: boolean;
-  isActionsDisabled?: boolean;
-  collapsible?: {
-    collapsibleHeader?: string;
-    collapsibleColumns: ColumnType[];
-    collapsibleRows: T[];
-    collapsibleRowKeys?: RowKeyType<T>[];
-    className?: (row: T) => string;
-  };
-};
-
-type PdfCell = string | { text: string; style: string };
-
-type Props<T extends Record<string, unknown>> = {
-  rows: T[];
+type Props<T> = {
+  rows: any[];
   isDraggable?: boolean;
   onDragEnter?: (DraggedRow: T, TargetRow: T) => void;
   isActionsActive: boolean;
@@ -104,7 +93,7 @@ type Props<T extends Record<string, unknown>> = {
   showOrientationToggle?: boolean;
 };
 
-const GenericTable = <T extends Record<string, unknown>>({
+const GenericTable = <T,>({
   rows,
   columns,
   rowKeys,
@@ -181,7 +170,6 @@ const GenericTable = <T extends Record<string, unknown>>({
     key: string;
     direction: "ascending" | "descending";
   } | null>(null);
-  const activeSortConfig = sortConfig ?? sortConfigKey;
   const [expandedCells, setExpandedCells] = useState<{
     [key: string]: boolean;
   }>({});
@@ -189,13 +177,37 @@ const GenericTable = <T extends Record<string, unknown>>({
   useEffect(() => {
     if (!title) return;
     const existing = tableColumns[title];
-    if (!existing || existing.length !== columns.length) {
+    const hasColumnShapeChanged =
+      !existing ||
+      existing.length !== columns.length ||
+      columns.some((column, index) => {
+        const existingColumn = existing[index];
+        if (!existingColumn) return true;
+        return (
+          existingColumn.key !== column.key ||
+          existingColumn.correspondingKey !== column.correspondingKey
+        );
+      });
+
+    if (hasColumnShapeChanged) {
       setTableColumns((prev) => ({
         ...prev,
-        [title]: columns.map((column) => ({ ...column, isActive: true })),
+        [title]: columns.map((column, index) => ({
+          ...column,
+          isActive: existing?.[index]?.isActive ?? true,
+        })),
       }));
     }
   }, [title, columns, setTableColumns, tableColumns]);
+
+  useEffect(() => {
+    if (sortConfigKey) {
+      setSortConfig({
+        key: sortConfigKey.key,
+        direction: sortConfigKey.direction,
+      });
+    }
+  }, [sortConfigKey]);
 
   const checkHeaderScrollButtons = () => {
     if (headerScrollRef.current) {
@@ -226,7 +238,7 @@ const GenericTable = <T extends Record<string, unknown>>({
       )
     : rowKeys;
 
-  const baseRows = useMemo(() => rows ?? [], [rows]);
+  const baseRows = rows ?? [];
 
   const filteredRows = useMemo(() => {
     if (!isSearch) return baseRows;
@@ -247,8 +259,8 @@ const GenericTable = <T extends Record<string, unknown>>({
   }, [baseRows, isSearch, searchQuery, searchRowKeys, usedRowKeys]);
 
   const sortedRows = useMemo(() => {
-    if (!activeSortConfig) return filteredRows;
-    const { key, direction } = activeSortConfig;
+    if (!sortConfig) return filteredRows;
+    const { key, direction } = sortConfig;
     return [...filteredRows].sort((a, b) => {
       const isSortable = (a["isSortable"] ?? true) && (b["isSortable"] ?? true);
       if (!isSortable) return 0;
@@ -261,7 +273,7 @@ const GenericTable = <T extends Record<string, unknown>>({
       if (valA > valB) return direction === "ascending" ? 1 : -1;
       return 0;
     });
-  }, [filteredRows, activeSortConfig]);
+  }, [filteredRows, sortConfig]);
 
   const usedTotalRows = pagination ? pagination.totalRows : sortedRows.length;
   const totalPages = Math.ceil(usedTotalRows / rowsPerPage);
@@ -332,16 +344,8 @@ const GenericTable = <T extends Record<string, unknown>>({
   };
 
   const generatePDF = () => {
-    const pdfMake = (
-      window as Window & {
-        pdfMake?: {
-          fonts: Record<string, unknown>;
-          createPdf: (def: unknown) => { open: () => void };
-        };
-      }
-    ).pdfMake;
-    if (!pdfMake) return;
-    const data: PdfCell[][] = [];
+    const pdfMake = (window as any).pdfMake;
+    const data: any[] = [];
     data.push(
       usedColumns
         .filter((column) => column.correspondingKey)
@@ -351,7 +355,7 @@ const GenericTable = <T extends Record<string, unknown>>({
         })),
     );
     sortedRows.forEach((row) => {
-      const rowData: string[] = [];
+      const rowData: any[] = [];
       usedColumns?.forEach((column) => {
         if (column.correspondingKey) {
           const value = String(row[column.correspondingKey]);
@@ -396,11 +400,53 @@ const GenericTable = <T extends Record<string, unknown>>({
 
   const generateExcel = () => {
     const workbook = XLSX.utils.book_new();
-    const excelRows: Array<Array<string | number>> = [];
+
+    if (isCollapsible) {
+      const excelRows: any[] = [];
+
+      sortedRows.forEach((row) => {
+        const collapsibleHeader = row?.collapsible?.collapsibleHeader;
+        const collapsibleColumns = row?.collapsible?.collapsibleColumns ?? [];
+        const collapsibleRowKeys = row?.collapsible?.collapsibleRowKeys ?? [];
+        const collapsibleRows = row?.collapsible?.collapsibleRows ?? [];
+
+        if (collapsibleHeader) {
+          excelRows.push([collapsibleHeader]);
+        }
+
+        if (collapsibleColumns.length > 0) {
+          excelRows.push(collapsibleColumns.map((column: any) => column.key));
+        }
+
+        if (collapsibleRows.length > 0) {
+          collapsibleRows.forEach((collapsibleRow: any) => {
+            const rowData = collapsibleRowKeys.map((rowKey: any) => {
+              const value = collapsibleRow[rowKey.key];
+              if (value === undefined || value === null) return "";
+              if (typeof value === "number") return value;
+              if (typeof value === "boolean") return value ? "true" : "false";
+              return String(value);
+            });
+            excelRows.push(rowData);
+          });
+        }
+
+        excelRows.push([]);
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(excelRows);
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+      XLSX.writeFile(workbook, excelFileName ?? "ExportedData.xlsx");
+      return;
+    }
+
+    const excelRows: any[] = [];
     const headers = usedColumns
       .filter((column) => column.correspondingKey)
       .map((column) => column.key);
+
     excelRows.push(headers);
+
     const excelAllRows = !isEmtpyExcel ? sortedRows : [];
     excelAllRows.forEach((row) => {
       const rowData = usedColumns
@@ -413,11 +459,11 @@ const GenericTable = <T extends Record<string, unknown>>({
         });
       excelRows.push(rowData);
     });
+
     const worksheet = XLSX.utils.aoa_to_sheet(excelRows);
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     XLSX.writeFile(workbook, excelFileName ?? "ExportedData.xlsx");
   };
-
   const renderActionButtons = (row: T, actions: ActionType<T>[]) => (
     <div className="flex flex-row my-auto h-full gap-3 justify-center items-center">
       {actions?.map((action, index) => {
@@ -449,7 +495,6 @@ const GenericTable = <T extends Record<string, unknown>>({
   const currentRowsContent = currentRows.map((row, rowIndex) => {
     const rowId = `row-${rowIndex}`;
     const isRowExpanded = expandedRows[rowId];
-    const rowWithMeta = row as RowMeta<T>;
     return (
       <Fragment key={rowId}>
         <tr
@@ -486,7 +531,7 @@ const GenericTable = <T extends Record<string, unknown>>({
           )}
           {(!isCollapsibleCheckActive ||
             (isCollapsible &&
-              (rowWithMeta.collapsible?.collapsibleRows?.length ?? 0) > 0)) && (
+              row?.collapsible?.collapsibleRows?.length > 0)) && (
             <td onClick={() => toggleRowExpansion(rowId)}>
               {isRowExpanded ? (
                 <FaChevronUp className="w-6 h-6 mx-auto p-1 cursor-pointer text-gray-500 hover:bg-gray-50 hover:rounded-full   " />
@@ -496,7 +541,7 @@ const GenericTable = <T extends Record<string, unknown>>({
             </td>
           )}
           {isCollapsibleCheckActive &&
-            rowWithMeta.collapsible?.collapsibleRows?.length === 0 && (
+            row?.collapsible?.collapsibleRows?.length === 0 && (
               <td className="w-6 h-6 mx-auto p-1 "></td>
             )}
           {actions && isActionsAtFront && isActionsActive && (
@@ -630,13 +675,13 @@ const GenericTable = <T extends Record<string, unknown>>({
           <td>
             {actions &&
               isActionsActive &&
-              !(rowWithMeta.isSortable === false) &&
-              !(rowWithMeta.isActionsDisabled ?? false) &&
+              !(row?.isSortable === false) &&
+              !(row?.isActionsDisabled ?? false) &&
               !isActionsAtFront &&
               renderActionButtons(row, actions)}
             {actions &&
               isActionsActive &&
-              (rowWithMeta.isActionsDisabled ?? false) && (
+              (row?.isActionsDisabled ?? false) && (
                 <div className="flex flex-row my-auto h-full gap-3 items-center">
                   <P1>{t("Constant")}</P1>
                 </div>
@@ -650,9 +695,9 @@ const GenericTable = <T extends Record<string, unknown>>({
               className="px-4 py-2 border-b transition-max-height duration-300 ease-in-out overflow-hidden"
               style={{ maxHeight: isRowExpanded ? "1000px" : "0" }}
             >
-              {rowWithMeta.collapsible?.collapsibleHeader && (
+              {row?.collapsible?.collapsibleHeader && (
                 <div className="w-[96%] mx-auto mb-2 bg-gray-100 rounded-md px-4 py-[0.3rem] flex flex-row justify-between items-center">
-                  <H5>{rowWithMeta.collapsible?.collapsibleHeader}</H5>
+                  <H5>{row?.collapsible?.collapsibleHeader}</H5>
                   {addCollapsible && (
                     <GenericButton
                       variant="black"
@@ -668,9 +713,8 @@ const GenericTable = <T extends Record<string, unknown>>({
               <table className="w-[96%] mx-auto">
                 <thead className="w-full">
                   <tr>
-                    {(rowWithMeta.collapsible?.collapsibleColumns?.length ??
-                      0) > 0 &&
-                      rowWithMeta.collapsible?.collapsibleColumns?.map(
+                    {row?.collapsible?.collapsibleColumns.length > 0 &&
+                      row?.collapsible?.collapsibleColumns?.map(
                         (column: ColumnType, index: number) => (
                           <th
                             key={index}
@@ -685,17 +729,16 @@ const GenericTable = <T extends Record<string, unknown>>({
                   </tr>
                 </thead>
                 <tbody>
-                  {(rowWithMeta.collapsible?.collapsibleRows?.length ?? 0) >
-                    0 &&
-                    rowWithMeta.collapsible?.collapsibleRows?.map(
+                  {row?.collapsible?.collapsibleRows.length > 0 &&
+                    row?.collapsible?.collapsibleRows?.map(
                       (collapsibleRow: T, rowIndex: number) => (
                         <tr
                           key={rowIndex}
-                          className={`${rowWithMeta.collapsible?.className?.(
-                            rowWithMeta.collapsible?.collapsibleRows[rowIndex],
+                          className={`${row?.collapsible?.className?.(
+                            row?.collapsible?.collapsibleRows[rowIndex],
                           )} `}
                         >
-                          {rowWithMeta.collapsible?.collapsibleRowKeys?.map(
+                          {row?.collapsible?.collapsibleRowKeys?.map(
                             (rowKey: RowKeyType<T>, keyIndex: number) => {
                               const cellValue = `${
                                 collapsibleRow[rowKey?.key as keyof T]
@@ -719,8 +762,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                                   key={keyIndex}
                                   className={`py-2 px-4 text-sm  ${
                                     rowIndex !==
-                                      (rowWithMeta.collapsible?.collapsibleRows
-                                        ?.length ?? 0) -
+                                      row?.collapsible?.collapsibleRows.length -
                                         1 && "border-b"
                                   }`}
                                 >
@@ -733,8 +775,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                             <td
                               className={`py-2 px-4  ${
                                 rowIndex !==
-                                  (rowWithMeta.collapsible?.collapsibleRows
-                                    ?.length ?? 0) -
+                                  row?.collapsible?.collapsibleRows.length -
                                     1 && "border-b"
                               }`}
                             >
@@ -847,12 +888,13 @@ const GenericTable = <T extends Record<string, unknown>>({
           <div className="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center gap-2 sm:gap-4 px-3 sm:px-6 border-b border-gray-200 py-3 sm:py-4">
             <div className="flex flex-row gap-1 items-center w-full sm:w-auto">
               {selectionActions && (
-                <ButtonTooltip
+                <Tooltip
                   content={
                     isSelectionActive
                       ? t("Close Selection")
                       : t("Activate Selection")
                   }
+                  placement="top"
                 >
                   <div
                     onClick={() => {
@@ -866,7 +908,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                       <CgChevronDownR className="my-auto text-xl cursor-pointer hover:scale-105" />
                     )}
                   </div>
-                </ButtonTooltip>
+                </Tooltip>
               )}
               {title && (
                 <H4 className="mr-auto text-base sm:text-lg">{title}</H4>
@@ -906,7 +948,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                   {filters &&
                     filters.some((f) => f.isUpperSide && !f.isDisabled) && (
                       <>
-                        <ButtonTooltip content={t("Filters")}>
+                        <Tooltip content={t("Filters")} placement="top">
                           <div
                             onClick={() =>
                               setIsFilterModalOpen((prev) => !prev)
@@ -915,7 +957,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                           >
                             <RiFilter3Line />
                           </div>
-                        </ButtonTooltip>
+                        </Tooltip>
                         {isFilterModalOpen && (
                           <div className="absolute top-10 right-0 flex flex-col gap-2 bg-white rounded-md py-4 px-2 max-w-fit border-t border-gray-200 drop-shadow-lg z-50 min-w-64 sm:hidden">
                             {filters
@@ -945,7 +987,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                   {/* Column Filter Button */}
                   {isColumnFilter && (
                     <>
-                      <ButtonTooltip content={t("Filter Columns")}>
+                      <Tooltip content={t("Filter Columns")} placement="top">
                         <div
                           onClick={() =>
                             setIsColumnActiveModalOpen((prev) => !prev)
@@ -954,7 +996,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                         >
                           <PiFadersHorizontal />
                         </div>
-                      </ButtonTooltip>
+                      </Tooltip>
                       {isColumnActiveModalOpen && title && (
                         <div className="absolute top-10 right-0 flex flex-col gap-2 bg-white rounded-md py-4 px-2 max-w-fit border-t border-gray-200  drop-shadow-lg z-50 min-w-64">
                           <ColumnActiveModal title={title} />
@@ -1017,7 +1059,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                       {selectionActions && isSelectionActive && (
                         <th className="sticky top-0 z-10 bg-gray-100 shadow-sm">
                           {selectionActions && isSelectionActive && (
-                            <ButtonTooltip content={t("Select All")}>
+                            <Tooltip content={t("Select All")} placement="top">
                               <div
                                 onClick={() => {
                                   if (allVisibleSelected) {
@@ -1033,7 +1075,7 @@ const GenericTable = <T extends Record<string, unknown>>({
                                   <MdOutlineCheckBoxOutlineBlank className="my-auto mx-auto text-2xl cursor-pointer hover:scale-105" />
                                 )}
                               </div>
-                            </ButtonTooltip>
+                            </Tooltip>
                           )}
                         </th>
                       )}
@@ -1090,10 +1132,9 @@ const GenericTable = <T extends Record<string, unknown>>({
                                 {column.isSortable &&
                                   (!outsideSortProps ||
                                     !column?.correspondingKey) &&
-                                  (activeSortConfig?.key ===
+                                  (sortConfig?.key ===
                                     usedRowKeys[index]?.key &&
-                                  activeSortConfig?.direction ===
-                                    "ascending" ? (
+                                  sortConfig?.direction === "ascending" ? (
                                     <GenericButton
                                       variant="icon"
                                       size="sm"

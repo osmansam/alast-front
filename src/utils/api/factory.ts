@@ -57,6 +57,11 @@ export const Paths = {
   PriceCompare: "/price-compare",
   CustomerPopup: "/menu/customer-popup",
   EventSurvey: "/event-survey",
+  Schools: "/schools",
+  Classes: "/classes",
+  Experiments: "/experiments",
+  CardSets: "/card-sets",
+  Cards: "/cards",
 };
 
 interface Props<T> {

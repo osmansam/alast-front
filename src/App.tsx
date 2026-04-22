@@ -5,14 +5,11 @@ import { useTranslation } from "react-i18next";
 import { Slide, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { FilterContextProvider } from "./context/Filter.context";
+import { Sidebar } from "./common/Sidebar";
 import {
   GeneralContextProvider,
   useGeneralContext,
 } from "./context/General.context";
-
-import { LogoutConfirmationModal } from "./common/LogoutConfirmationModal";
-import { Sidebar } from "./common/Sidebar";
 import { UserContextProvider, useUserContext } from "./context/User.context";
 import RouterContainer from "./navigation/routes";
 
@@ -75,7 +72,6 @@ function App() {
       >
         <RouterContainer />
       </div>
-      <LogoutConfirmationModal />
       {user && <ChangePasswordModal />}
       <ToastContainer
         autoClose={2000}
@@ -97,11 +93,7 @@ function AppWrapper() {
     return <App />;
   }
 
-  return (
-    <FilterContextProvider>
-      <App />
-    </FilterContextProvider>
-  );
+  return <App />;
 }
 
 function ContextWrapper() {

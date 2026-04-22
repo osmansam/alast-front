@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { useGeneralContext } from "../../context/General.context";
 import { Role, User } from "../../types";
 import { get, patch, post } from "../api";
 import { UserGameUpdateType } from "./../../types/index";
 import { Paths, useGet, useGetList, useMutationApi } from "./factory";
-
-export type MinimalUser = Pick<User, "_id" | "name" | "role">;
 
 export function getUserWithToken(): Promise<User> {
   return get<User>({ path: "/users/me" });
@@ -19,29 +18,6 @@ export function useUserMutations() {
     });
 
   return { updateUser, createUser };
-}
-
-export function useCreateUserMutation(
-  onCreated: (username: string, tempPassword: string) => void
-) {
-  const queryClient = useQueryClient();
-  const { mutate: createUser } = useMutation({
-    mutationFn: (itemDetails: Partial<User>) =>
-      post<Partial<User>, User & { tempPassword: string }>({
-        path: Paths.Users,
-        payload: itemDetails,
-      }),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [Paths.Users] });
-      onCreated(data._id as string, data.tempPassword);
-    },
-    onError: (_err: any) => {
-      const errorMessage =
-        _err?.response?.data?.message || "An unexpected error occurred";
-      setTimeout(() => toast.error(errorMessage), 200);
-    },
-  });
-  return { createUser };
 }
 
 function updateUserPasswordRequest({
@@ -73,28 +49,7 @@ export function useUpdatePasswordMutation() {
 
   return { updatePassword };
 }
-function resetUserPasswordRequest({
-  id,
-}: {
-  id: string;
-}): Promise<User & { tempPassword: string }> {
-  return post({
-    path: `${Paths.Users}/resetPassword`,
-    payload: { id },
-  });
-}
 
-export function useResetPasswordMutation(
-  onReset?: (username: string, tempPassword: string) => void
-) {
-  const { mutate: resetPassword } = useMutation({
-    mutationFn: resetUserPasswordRequest,
-    onSuccess: (data) => {
-      onReset?.(data._id as string, data.tempPassword);
-    },
-  });
-  return { resetPassword };
-}
 function updateUserGames({
   gameId,
   updateType,
@@ -126,16 +81,12 @@ export function useGetUsers() {
   return useGetList<User>(Paths.Users);
 }
 
-export function useGetUsersMinimal() {
-  return useGetList<MinimalUser>(`${Paths.Users}/minimal`);
-}
-
 export function useGetUser(enabled?: boolean) {
   return useGet<User>(
     Paths.User,
     [Paths.Users, "me"],
     undefined,
-    enabled !== undefined ? { enabled } : undefined
+    enabled !== undefined ? { enabled } : undefined,
   );
 }
 export function useGetUserWithId(id: string) {
@@ -148,4 +99,37 @@ export function useGetAllUsers() {
 
 export function useGetAllUserRoles() {
   return useGetList<Role>(`${Paths.Users}/roles`, [Paths.Users, "roles"]);
+}
+
+export function useGetTeachers() {
+  const { filterTeacherFormElements } = useGeneralContext();
+  console.log("filterTeacherFormElements", filterTeacherFormElements);
+  let query = "";
+  if (filterTeacherFormElements.school !== "") {
+    query = `?school=${filterTeacherFormElements.school}`;
+  }
+
+  return useGetList<User>(`${Paths.Users}/teachers${query}`, [
+    Paths.Users,
+    "teachers",
+    filterTeacherFormElements.school,
+  ]);
+}
+
+export function useGetAdmins() {
+  const { filterTeacherFormElements } = useGeneralContext();
+  let query = "";
+  if (filterTeacherFormElements.school !== "") {
+    query = `?school=${filterTeacherFormElements.school}`;
+  }
+
+  return useGetList<User>(`${Paths.Users}/admins${query}`, [
+    Paths.Users,
+    "admins",
+    filterTeacherFormElements.school,
+  ]);
+}
+
+export function useGetAllTeachers() {
+  return useGetList<User>(`${Paths.Users}/teachers`, [Paths.Users, "teachers"]);
 }

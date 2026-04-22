@@ -1500,5 +1500,14 @@
   "Max Price": "Maksimum Fiyat",
   "Price Gap": "Fiyat Farkı",
   "Available Sites": "Mevcut Siteler",
-  "Archived": "Arşivlendi"
+  "Archived": "Arşivlendi",
+  "Admins": "Yöneticiler",
+  "Delete Admin": "Yönetici Sil",
+  "Card Sets": "Kart Setleri",
+  "Add Card Set": "Kart Seti Ekle",
+  "Delete Card Set": "Kart Seti Sil",
+  "Game Type": "Oyun Türü",
+  "Cards": "Kartlar",
+  "Add Card": "Kart Ekle",
+  "Delete Card": "Kart Sil"
 }
