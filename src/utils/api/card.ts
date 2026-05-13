@@ -11,6 +11,11 @@ const baseUrl = Paths.Cards;
 type GenerateCardsPayload = {
   topic: string;
   counts: Record<string, number>;
+  lang: string;
+};
+
+type TranslateCardSetPayload = {
+  lang: string;
 };
 
 export function useCardMutations() {
@@ -56,6 +61,34 @@ export function useGenerateCardSetCards(cardSetId?: number | string) {
       const errorMessage = getApiErrorMessage(
         error,
         "Failed to generate cards",
+      );
+      setTimeout(() => toast.error(t(errorMessage)), 200);
+    },
+  });
+}
+
+export function useTranslateCardSet(cardSetId?: number | string) {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  return useMutation({
+    mutationFn: async (payload: TranslateCardSetPayload) => {
+      if (cardSetId === undefined || cardSetId === null) {
+        throw new Error("Card set id is required");
+      }
+
+      return post<TranslateCardSetPayload, unknown>({
+        path: `${baseUrl}/translate/${cardSetId}`,
+        payload,
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [baseUrl] });
+    },
+    onError: (error: unknown) => {
+      const errorMessage = getApiErrorMessage(
+        error,
+        "Failed to translate card set",
       );
       setTimeout(() => toast.error(t(errorMessage)), 200);
     },

@@ -16,7 +16,6 @@ export const PublicRoutes = {
 };
 
 export const Routes = {
-  Comparision: "/comparision",
   Schools: "/schools",
   Classes: "/classes",
   Teachers: "/teachers",

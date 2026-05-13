@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export function Header({ dateProps }: HeaderProps) {
   const handleScrollToTop = () => {
-    if (location.pathname === Routes.Comparision) {
+    if (location.pathname === Routes.Schools) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -29,7 +29,7 @@ export function Header({ dateProps }: HeaderProps) {
           } flex justify-between pl-2 lg:pl-4 pr-2 lg:pr-6 mr-2 lg:mr-20`}
         >
           <div className="flex flex-row gap-2 items-center">
-            <Link to={Routes.Comparision} onClick={handleScrollToTop}>
+            <Link to={Routes.Schools} onClick={handleScrollToTop}>
               <img
                 src={logo}
                 alt="profile"

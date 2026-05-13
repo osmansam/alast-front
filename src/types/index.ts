@@ -176,8 +176,8 @@ export type CardSet = {
 export type Card = {
   _id: number;
   cardSet: number | CardSet;
-  content: string;
-  answer: string;
+  content: string | Record<string, string>;
+  answer: string | Record<string, string>;
   isDeleted: boolean;
 };
 
@@ -1737,8 +1737,34 @@ export const NOTPAID = "Not Paid";
 
 export const TURKISHLIRA = "₺";
 export const languageOptions = [
-  { code: "en-EN", label: "EN" },
-  { code: "tr-TR", label: "TR" },
+  { code: "en-EN", label: "English" },
+  { code: "tr-TR", label: "Turkish" },
+  { code: "es-ES", label: "Spanish" },
+  { code: "fr-FR", label: "French" },
+  { code: "de-DE", label: "German" },
+  { code: "it-IT", label: "Italian" },
+  { code: "pt-PT", label: "Portuguese" },
+  { code: "pt-BR", label: "Portuguese (Brazil)" },
+  { code: "nl-NL", label: "Dutch" },
+  { code: "pl-PL", label: "Polish" },
+  { code: "ru-RU", label: "Russian" },
+  { code: "ja-JP", label: "Japanese" },
+  { code: "zh-CN", label: "Chinese (Simplified)" },
+  { code: "ko-KR", label: "Korean" },
+  { code: "ar-SA", label: "Arabic" },
+  { code: "hi-IN", label: "Hindi" },
+  { code: "th-TH", label: "Thai" },
+  { code: "vi-VN", label: "Vietnamese" },
+  { code: "id-ID", label: "Indonesian" },
+  { code: "sv-SE", label: "Swedish" },
+  { code: "no-NO", label: "Norwegian" },
+  { code: "da-DK", label: "Danish" },
+  { code: "fi-FI", label: "Finnish" },
+  { code: "cs-CZ", label: "Czech" },
+  { code: "hu-HU", label: "Hungarian" },
+  { code: "el-GR", label: "Greek" },
+  { code: "he-IL", label: "Hebrew" },
+  { code: "uk-UA", label: "Ukrainian" },
 ];
 
 export enum ActivityType {

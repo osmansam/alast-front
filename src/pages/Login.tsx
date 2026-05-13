@@ -129,7 +129,7 @@ const Login = () => {
                 animation: "fadeInScale 0.8s ease-out 0.2s both",
               }}
             >
-              Da Vinci Panel
+              Alast
             </h2>
           </div>
           <div className="mt-12 w-full relative z-10">

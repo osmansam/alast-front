@@ -57,7 +57,7 @@ export function useLogin(
       }
       const target = location
         ? `${location.pathname}${location.search}`
-        : Routes.Comparision;
+        : Routes.Schools;
       navigate(target);
     },
 
